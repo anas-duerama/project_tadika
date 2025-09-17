@@ -3,18 +3,15 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
+use App\Http\Controllers\Admin\StudentController as AdminStudentController;
+use App\Http\Controllers\Admin\NewsController as AdminNewsController;
+use App\Http\Controllers\Admin\TeacherController as AdminTeacherController;
 
-
-/*
-|--------------------------------------------------------------------------
-| Web Routes
-|--------------------------------------------------------------------------
-|
-| Here is where you can register web routes for your application. These
-| routes are loaded by the RouteServiceProvider and all of them will
-| be assigned to the "web" middleware group. Make something great!
-|
-*/
+// ====== Teacher Controllers ======
+use App\Http\Controllers\Teacher\TeacherDashboardController;
+use App\Http\Controllers\Teacher\TeacherStudentController;
+use App\Http\Controllers\Teacher\TeacherGradeController;
+use App\Http\Controllers\Teacher\TeacherAttendanceController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -27,9 +24,28 @@ Route::get('/register', [RegisterController::class, 'showRegister'])->name('regi
 Route::post('/register', [RegisterController::class, 'register'])->name('register.post');
 Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 
-// Dashboards
-Route::middleware('auth')->group(function () {
-    Route::get('/admin', function () { return view('admin.dashboard'); })->name('admin')->middleware('role:admin');
-    Route::get('/teacher', function () { return view('teacher.dashboard'); })->name('teacher')->middleware('role:teacher');
-    Route::get('/home', function () { return view('home'); })->name('home');
-});
+// ----- กลุ่ม ADMIN (ตัวอย่าง; คุณมีอยู่แล้ว) -----
+Route::middleware(['auth','role:admin'])
+    ->prefix('admin')->name('admin.')
+    ->group(function () {
+        Route::get('/dashboard', fn () => view('admin.dashboard'))->name('dashboard');
+        Route::get('/', fn () => redirect()->route('admin.dashboard'))->name('home');
+        Route::resource('students', AdminStudentController::class);
+        Route::resource('news', AdminNewsController::class);
+        Route::resource('teachers', AdminTeacherController::class);
+    });
+
+// ----- กลุ่ม TEACHER -----
+Route::middleware(['auth','role:teacher'])
+    ->prefix('teacher')->name('teacher.')
+    ->group(function () {
+        Route::get('/', [TeacherDashboardController::class,'index'])->name('dashboard');
+
+        Route::get('/students', [TeacherStudentController::class,'index'])->name('students.index');
+
+        Route::get('/grades', [TeacherGradeController::class,'index'])->name('grades.index');
+        Route::post('/grades', [TeacherGradeController::class,'store'])->name('grades.store');
+
+        Route::get('/attendance', [TeacherAttendanceController::class,'index'])->name('attendance.index');
+        Route::post('/attendance', [TeacherAttendanceController::class,'store'])->name('attendance.store');
+    });
