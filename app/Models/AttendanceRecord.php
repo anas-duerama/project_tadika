@@ -9,7 +9,7 @@ class AttendanceRecord extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['student_id','date','present','remark'];
+    protected $fillable = ['student_id','date','present','remark','status'];
 
     protected $casts = [
         'date' => 'date',

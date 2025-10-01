@@ -15,6 +15,8 @@
     $studentsIndex = \Illuminate\Support\Facades\Route::has('teacher.students.index') ? route('teacher.students.index') : url('/teacher/students');
     $gradesIndex   = \Illuminate\Support\Facades\Route::has('teacher.grades.index')   ? route('teacher.grades.index')   : url('/teacher/grades');
     $attIndex      = \Illuminate\Support\Facades\Route::has('teacher.attendance.index')? route('teacher.attendance.index'): url('/teacher/attendance');
+    $historyIndex  = \Illuminate\Support\Facades\Route::has('teacher.history.index')? route('teacher.history.index'): url('/teacher/history');
+
   @endphp
   <aside class="w-72 bg-white border-r border-gray-200 hidden md:block">
     <div class="p-4">
@@ -22,10 +24,12 @@
       <div class="text-sm text-gray-500 mt-1">{{ auth()->user()->name ?? 'คุณครู' }}</div>
     </div>
     <nav class="p-2 space-y-1">
-      <a href="{{ route('teacher.dashboard') }}" class="block px-4 py-3 rounded-xl text-sm font-medium {{ request()->routeIs('teacher.dashboard') ? 'bg-indigo-600 text-white' : 'text-gray-700 hover:bg-indigo-50' }}">แดชบอร์ด</a>
+  <a href="{{ route('teacher.dashboard') }}" class="block px-4 py-3 rounded-xl text-sm font-medium {{ request()->routeIs('teacher.dashboard') ? 'bg-indigo-600 text-white' : 'text-gray-700 hover:bg-indigo-50' }}">แดชบอร์ด</a>
+  <a href="{{ route('teacher.profile') }}" class="block px-4 py-3 rounded-xl text-sm font-medium {{ request()->routeIs('teacher.profile') ? 'bg-indigo-600 text-white' : 'text-gray-700 hover:bg-indigo-50' }}">โปรไฟล์ผู้สอน</a>
       <a href="{{ $studentsIndex }}" class="block px-4 py-3 rounded-xl text-sm font-medium {{ request()->routeIs('teacher.students.*') ? 'bg-indigo-600 text-white' : 'text-gray-700 hover:bg-indigo-50' }}">จัดการข้อมูลนักเรียน</a>
       <a href="{{ $gradesIndex }}" class="block px-4 py-3 rounded-xl text-sm font-medium {{ request()->routeIs('teacher.grades.*') ? 'bg-indigo-600 text-white' : 'text-gray-700 hover:bg-indigo-50' }}">จัดการผลการเรียน</a>
       <a href="{{ $attIndex }}" class="block px-4 py-3 rounded-xl text-sm font-medium {{ request()->routeIs('teacher.attendance.*') ? 'bg-indigo-600 text-white' : 'text-gray-700 hover:bg-indigo-50' }}">จัดการการมาเรียน</a>
+      <a href="{{ $historyIndex  }}" class="block px-4 py-3 rounded-xl text-sm font-medium {{ request()->routeIs('teacher.history.*') ? 'bg-indigo-600 text-white' : 'text-gray-700 hover:bg-indigo-50' }}">ประวัติการมาเรียน</a>
       <form method="POST" action="{{ route('logout') }}" class="px-2 pt-3">
         @csrf
         <button class="w-full rounded-xl border px-4 py-2 text-sm hover:bg-gray-100">ออกจากระบบ</button>

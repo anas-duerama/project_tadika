@@ -17,5 +17,13 @@ class Student extends Model
     return $this->hasMany(Grade::class);
 }
     
+    /**
+     * Full name accessor for convenience in views.
+     */
+    public function getFullnameAttribute(): string
+    {
+        return trim(($this->first_name ?? '') . ' ' . ($this->last_name ?? ''));
+    }
+    
 } 
    

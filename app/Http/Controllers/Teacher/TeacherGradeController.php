@@ -4,53 +4,73 @@ namespace App\Http\Controllers\Teacher;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use App\Models\Student;
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\DB;
 use App\Models\Grade;
 
 class TeacherGradeController extends Controller
 {
-    private string $classCol = 'class_level';
-    private string $roomCol  = 'room';
-
+    /**
+     * GET /teacher/grades
+     * เราจะพาไปหน้า "ไวกรอกคะแนน" ที่สร้างไว้แล้ว
+     */
     public function index(Request $request)
     {
-        $term = $request->get('term','1/2568');
-        $subject = $request->get('subject','');
-        $class = $request->get('class','ป.6');
-        $room  = $request->get('room','1');
-
-        $students = Student::query()
-            ->when($class, fn($q)=>$q->where($this->classCol,$class))
-            ->when($room,  fn($q)=>$q->where($this->roomCol,$room))
-            ->orderBy('student_code')
-            ->get();
-
-        $grades = Grade::where('term',$term)->where('subject',$subject)->get()->keyBy('student_id');
-
-        return view('teacher.grades.index', compact('term','subject','class','room','students','grades'));
+        // ส่งพารามิเตอร์เดิม ๆ ต่อไป (class/room/term/subject)
+        $params = $request->only(['class', 'room', 'term', 'subject']);
+        return redirect()->route('teacher.grades.quick', $params);
     }
 
+    /**
+     * POST /teacher/grades
+     * รองรับฟอร์มบันทึกคะแนนแบบหลายคนครั้งเดียว (รูปแบบเดียวกับ QuickGradeController@storeQuick)
+     */
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'term'=>['required','string','max:50'],
-            'subject'=>['required','string','max:100'],
-            'class'=>['required','string','max:50'],
-            'room'=>['required','string','max:50'],
-            'scores'=>['array'],
+        $data = $request->validate([
+            'class'   => ['nullable','string','max:100'],
+            'room'    => ['nullable','string','max:100'],
+            'term'    => ['required','string','max:100'],
+            'subject' => ['required','string','max:100'],
+            'scores'  => ['required','array'],
+            'scores.*'=> ['nullable','string','max:50'],
+        ], [
+            'term.required' => 'กรุณาระบุภาคเรียน',
+            'subject.required' => 'กรุณาระบุวิชา',
+            'scores.required' => 'กรุณากรอกคะแนนอย่างน้อย 1 รายการ',
         ]);
 
-        $term = $validated['term'];
-        $subject = $validated['subject'];
-        $scores = $validated['scores'] ?? [];
+        $term = $data['term'];
+        $subject = $data['subject'];
+        $scores = $data['scores'];
 
-        foreach ($scores as $studentId => $score) {
-            Grade::updateOrCreate(
-                ['student_id'=>$studentId,'term'=>$term,'subject'=>$subject],
-                ['score'=>$score]
-            );
-        }
+        $hasTeacherId = Schema::hasColumn('grades', 'teacher_id');
 
-        return back()->with('ok','บันทึกเกรดสำเร็จ');
+        DB::transaction(function () use ($scores, $term, $subject, $hasTeacherId) {
+            foreach ($scores as $studentId => $score) {
+                if ($score === null || $score === '') continue;
+
+                Grade::updateOrCreate(
+                    [
+                        'student_id' => (int) $studentId,
+                        'term'       => $term,
+                        'subject'    => $subject,
+                    ],
+                    array_filter([
+                        'score'      => $score,
+                        'teacher_id' => $hasTeacherId ? auth()->id() : null,
+                    ], fn($v) => !is_null($v))
+                );
+            }
+        });
+
+        return redirect()
+            ->route('teacher.grades.quick', [
+                'class'   => $data['class'],
+                'room'    => $data['room'],
+                'term'    => $term,
+                'subject' => $subject,
+            ])
+            ->with('ok', 'บันทึกคะแนนเรียบร้อย');
     }
 }

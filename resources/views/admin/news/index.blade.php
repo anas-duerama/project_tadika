@@ -1,7 +1,8 @@
-<!DOCTYPE html><html lang="th"><head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>ข่าวสาร</title><script src="https://cdn.tailwindcss.com"></script></head>
-<body class="bg-gray-50 p-6">
+@extends('admin.layout')
+@section('title','ข่าวสาร')
+@section('page_title','ข่าวสาร')
+
+@section('content')
 <div class="max-w-6xl mx-auto bg-white rounded-xl border p-6">
   <div class="flex items-center justify-between">
     <h1 class="text-xl font-bold">ข่าวสาร</h1>
@@ -45,4 +46,5 @@
 
   <div class="mt-4">{{ $news->links() }}</div>
 </div>
-</body></html>
+
+@endsection
